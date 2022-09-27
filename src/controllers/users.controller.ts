@@ -59,12 +59,6 @@ export class UsersController extends ApplicationController {
     super('User');
   }
 
-  @Get()
-  public async welcome(){
-    return "hello route"
-    //return userService.register(registerParams);
-  }
-
   @Post("/register")
   public async register(@Body() registerParams: UserRegisterParams){
     return userService.register(registerParams);
