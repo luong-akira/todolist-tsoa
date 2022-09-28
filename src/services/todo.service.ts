@@ -3,8 +3,9 @@ import Joi = require('joi');
 import * as Excel from 'exceljs';
 import * as path from 'path';
 import { RESOURCES_DIRNAME, ROOT_DIR } from '@commons/constant';
+import { excelQueue } from '../queues/excelQueue/excelQueue';
 const db = require('@models');
-const { sequelize, Sequelize, Todo, User } = db.default;
+const { sequelize, Sequelize, Todo, User, ImportExport } = db.default;
 
 export async function getAllTodos(userId: string, page: number, limit: number) {
   let todoCount = await Todo.count({
@@ -170,3 +171,82 @@ export async function exportToExcelStream(userId: string, requestPage: number, l
 
   return `/${RESOURCES_DIRNAME}/${filename}`;
 }
+
+export async function importFromExcelFileQueue(userId: string, file: any, sheetNum: number) {
+  await excelQueue.add('import', {
+    userId,
+    file,
+    sheetNum,
+  });
+}
+
+export async function exportToExcelFileQueue(userId: string, requestPage: number, limit: number) {
+  await excelQueue.add('export', {
+    userId,
+    requestPage,
+    limit,
+  });
+}
+
+excelQueue.on('active', async (job, result) => {
+  if (job.name == 'import') {
+    let importJob: any = await ImportExport.findOne({
+      where: { UserId: job.data.userId, jobId: job.id },
+    });
+
+    if (!importJob) return;
+    importJob.status = 'active';
+    await importJob.save();
+  } else if (job.name == 'export') {
+    let exportJob: any = await ImportExport.findOne({
+      where: { UserId: job.data.userId, jobId: job.id },
+    });
+
+    if (!exportJob) return;
+    exportJob.status = 'active';
+    await exportJob.save();
+  }
+});
+
+excelQueue.on('completed', async (job, result) => {
+  if (job.name == 'import') {
+    let importJob: any = await ImportExport.findOne({
+      where: { UserId: job.data.userId, jobId: job.id },
+    });
+
+    if (!importJob) return;
+    importJob.status = 'completed';
+    importJob.file = job.data.file.filename;
+    await importJob.save();
+  } else if (job.name == 'export') {
+    if (job.name == 'export') {
+      let exportJob: any = await ImportExport.findOne({
+        where: { UserId: job.data.userId, jobId: job.id },
+      });
+      if (!exportJob) return;
+      exportJob.status = 'completed';
+      exportJob.file = job.returnvalue;
+
+      await exportJob.save();
+    }
+  }
+});
+
+excelQueue.on('failed', async (job, result) => {
+  if (job.name == 'import') {
+    let importJob: any = await ImportExport.findOne({
+      where: { UserId: job.data.userId, jobId: job.id },
+    });
+    if (!importJob) return;
+    importJob.status = 'failed';
+    await importJob.save();
+  } else if ((job.name = 'export')) {
+    let exportJob: any = await ImportExport.findOne({
+      where: { UserId: job.data.userId, jobId: job.id },
+    });
+
+    if (!exportJob) return;
+    exportJob.status = 'failed';
+    await exportJob.save();
+  }
+});

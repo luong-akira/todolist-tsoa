@@ -8,7 +8,7 @@ const db = require('@models');
 const { sequelize, Sequelize, User } = db.default;
 const { Op } = Sequelize;
 import * as uploadMiddleware from '@middleware/uploadMiddleware';
-import { PRODUCT_MEDIA_TYPE } from '@commons/constant';
+import { getFullUrl, PRODUCT_MEDIA_TYPE } from '@commons/constant';
 
 @Route('todos')
 @Tags('todo')
@@ -59,6 +59,25 @@ export class TodosController extends ApplicationController {
   @Security('jwt')
   public async exportToExcelStream(@Request() request: any) {
     let userId = request.user.data.id;
-    return todoService.exportToExcelStream(userId, 1, 10);
+    let relativePath = await todoService.exportToExcelStream(userId, 1, 10);
+    return getFullUrl(relativePath);
+  }
+
+  @Post('/importFromExcelStreamQueue')
+  @Security('jwt')
+  public async importToExcelStreamQueue(@Request() request: any) {
+    await uploadMiddleware.handleSingleFile(request, 'excel', PRODUCT_MEDIA_TYPE.OTHER);
+    let userId = request.user.data.id;
+    todoService.importFromExcelFileQueue(userId, request.file, 1);
+
+    return 'File is processing';
+  }
+
+  @Post('/exportToExcelStreamQueue')
+  @Security('jwt')
+  public async exportToExcelStreamQueue(@Request() request: any) {
+    let userId = request.user.data.id;
+    await todoService.exportToExcelFileQueue(userId, 1, 10);
+    return 'File is processing';
   }
 }

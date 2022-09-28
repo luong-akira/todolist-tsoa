@@ -6,6 +6,7 @@ import { ValidateError } from 'tsoa';
 import { AppError, withError } from '@controllers/models/BaseResponseModel';
 import Joi from '../helpers/validationHelper';
 import { apiCode, updateServerUrl } from '@commons/constant';
+// import { serverAdapter } from 'index';
 
 export function initRoutes(app: Express): void {
   app.use(
@@ -19,6 +20,8 @@ export function initRoutes(app: Express): void {
       explorer: true,
     }),
   );
+
+  // app.use('/admin/queues', serverAdapter.getRouter());
 
   app.use((req, res, next) => {
     updateServerUrl(req);

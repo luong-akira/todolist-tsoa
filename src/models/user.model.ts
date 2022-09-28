@@ -61,6 +61,10 @@ module.exports = function (sequelize, DataTypes) {
     db.User.hasMany(db.Todo);
   };
 
+  User.associate = (db) => {
+    db.User.hasMany(db.ImportExport);
+  };
+
   User.beforeSave((user, options) => {
     //console.log('before SAVE:   ', { user });
     if (user.changed('password')) {

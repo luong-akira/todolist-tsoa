@@ -22,6 +22,7 @@ import {
 } from '@controllers/models/UserRequestModel';
 import e = require('express');
 import Joi = require('joi');
+import { excelQueue } from '@queues/excelQueue/excelQueue';
 
 export async function register(data: UserRegisterParams) {
   if (BasicUserRegisterSchema.validate(data).error) {

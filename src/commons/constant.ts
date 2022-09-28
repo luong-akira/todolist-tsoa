@@ -580,7 +580,7 @@ export const apiCode = {
   SUCCESS_UPDATE: 'Hủy follow thành công',
 };
 
-let SERVER_URL = '';
+let SERVER_URL = 'http://localhost:5000';
 export function updateServerUrl(request): string {
   SERVER_URL = `${request.protocol}://${request.headers.host}`;
   return SERVER_URL;
