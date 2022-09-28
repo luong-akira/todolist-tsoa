@@ -17,6 +17,7 @@ import {
   UserRegisterParams,
   BasicUserLoginSchema,
   BasicUserRegisterSchema,
+  UserUpdateParams,
 } from './models/UserRequestModel';
 // import { AuthorizedUser, MulterRequest } from '@commons/types';
 import * as userService from '@services/user.service';
@@ -64,25 +65,32 @@ export class UsersController extends ApplicationController {
       userRegisterParams.role = request.body.role;
     }
 
-    if (BasicUserRegisterSchema.validate(userRegisterParams).error) {
-      throw new Joi.ValidationError(
-        'Vlidation error',
-        BasicUserRegisterSchema.validate(userRegisterParams).error.details,
-        null,
-      );
-    }
-
     let user = await userService.register(userRegisterParams);
     return user;
   }
 
   @Post('/login')
   public async login(@Body() loginParams: UserLoginParams) {
-    if (BasicUserLoginSchema.validate(loginParams).error) {
-      throw new Joi.ValidationError('Vlidation error', BasicUserLoginSchema.validate(loginParams).error.details, null);
-    }
     return userService.login(loginParams);
   }
+
+  @Put('/update')
+  @Security('jwt')
+  public async updateUser(@Request() request: any) {
+    await uploadMiddleware.handleSingleFile(request, 'avatar', PRODUCT_MEDIA_TYPE.IMAGE);
+    let avatar = request.file?.path;
+    let userId = request.user.data.id;
+
+    let updatedUserParams: UserUpdateParams = {};
+    if (request.body.name) updatedUserParams.name = request.body.name;
+    if (request.body.username) updatedUserParams.username = request.body.username;
+    if (request.body.role) updatedUserParams.role = request.body.role;
+    if (avatar) updatedUserParams.avatar = avatar;
+
+    let user = await userService.update(userId, updatedUserParams);
+    return user;
+  }
+
   // @Get()
   // async getAllUser(@Request() request: any): Promise<SuccessResponseModel<any>> {
   //   return userService.getAllUsers();

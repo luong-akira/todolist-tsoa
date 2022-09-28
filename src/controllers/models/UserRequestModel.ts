@@ -21,6 +21,13 @@ export interface UserRegisterParams {
   avatar?: string;
 }
 
+export interface UserUpdateParams {
+  name?: string;
+  username?: string;
+  role?: string;
+  avatar?: string;
+}
+
 export const BasicUserRegisterSchema = Joi.object({
   name: Joi.string().required().min(4),
   username: Joi.string().required().min(3),

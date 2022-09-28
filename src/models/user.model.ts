@@ -1,6 +1,9 @@
+import { ROOT_DIR } from '@commons/constant';
 import { createJWToken } from '@config/auth';
 import * as bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import * as path from 'path';
+import * as fs from 'fs';
 
 module.exports = function (sequelize, DataTypes) {
   const User: any = sequelize.define(
@@ -52,6 +55,14 @@ module.exports = function (sequelize, DataTypes) {
     if (user.changed('password')) {
       user.password = bcrypt.hashSync(user.password, bcrypt.genSaltSync(10), null);
       //console.log('before SAVE:11111   ', { user });
+    }
+  });
+
+  User.afterUpdate((user, options) => {
+    if (user.changed('avatar')) {
+      if (user._previousDataValues.avatar) {
+        fs.unlinkSync(path.join(ROOT_DIR, user._previousDataValues.avatar));
+      }
     }
   });
 

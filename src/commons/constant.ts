@@ -3,6 +3,8 @@ export const IS_ACTIVE = {
   INACTIVE: 0,
 };
 
+export const ROOT_DIR = process.cwd();
+
 export const GIFT_STATUS = {
   ACTIVE: 1, // hoạt động
   INACTIVE: 0, // không hoạt động
@@ -115,7 +117,7 @@ export const FILTER_TYPE = {
 
 export const ROLE = {
   ADMIN: 1,
-  USER:2,
+  USER: 2,
   ENTERPRISE: 3,
   AGENT: 4,
 };

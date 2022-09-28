@@ -13,17 +13,28 @@ import {
 } from '@controllers/models/BaseResponseModel';
 import { HostNotFoundError } from 'sequelize/types';
 // from './models/BaseResponseModel';
-import { UserLoginParams, UserRegisterParams } from '@controllers/models/UserRequestModel';
+import {
+  BasicUserLoginSchema,
+  BasicUserRegisterSchema,
+  UserLoginParams,
+  UserRegisterParams,
+  UserUpdateParams,
+} from '@controllers/models/UserRequestModel';
 import e = require('express');
+import Joi = require('joi');
 
 export async function register(data: UserRegisterParams) {
+  if (BasicUserRegisterSchema.validate(data).error) {
+    throw new Joi.ValidationError('Vlidation error', BasicUserRegisterSchema.validate(data).error.details, null);
+  }
+
   let user: any = await User.findOne({
     where: {
       username: data.username,
     },
   });
 
-  if (user) throw new Error('user has been existed');
+  if (user) throw new Error('User has been existed');
   user = await User.create({
     ...data,
   });
@@ -40,24 +51,48 @@ export async function register(data: UserRegisterParams) {
 }
 
 export async function login(data: UserLoginParams) {
+  if (BasicUserLoginSchema.validate(data).error) {
+    throw new Joi.ValidationError('Vlidation error', BasicUserLoginSchema.validate(data).error.details, null);
+  }
+
   const user: any = await User.findOne({
     where: {
       username: data.username,
     },
   });
 
-  if (!user) return 'Invalid credentials';
+  if (!user) throw new Error('Invalid credentials');
 
-  if (user.authenticate(data.password, user.password)) {
-    return {
-      name: user.name,
-      username: user.username,
-      role: user.role,
-      token: user.generateToken(),
-    };
-  } else {
-    return 'Invalid credentials';
+  if (!user.authenticate(data.password, user.password)) throw new Error('Invalid credentials');
+
+  return {
+    name: user.name,
+    username: user.username,
+    role: user.role,
+    avatar: user.avatar,
+    token: user.generateToken(),
+  };
+}
+
+export async function update(userId: string, userUpdateParams: UserUpdateParams) {
+  let user = await User.findOne({
+    where: {
+      id: userId,
+    },
+  });
+
+  if (!user) throw new Error('User does not exist');
+  user.name = userUpdateParams.name || user.name;
+  user.username = userUpdateParams.username || user.username;
+  user.avatar = userUpdateParams.avatar || user.avatar;
+  user.role = userUpdateParams.role || user.role;
+
+  if (BasicUserRegisterSchema.validate(user).error) {
+    throw new Joi.ValidationError('Vlidation error', BasicUserRegisterSchema.validate(user).error.details, null);
   }
+
+  await user.save();
+  return user;
 }
 
 // export async function getAllUsers(): Promise<SuccessResponseModel<any>> {
