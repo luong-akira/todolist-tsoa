@@ -16,37 +16,48 @@ import { HostNotFoundError } from 'sequelize/types';
 import { UserLoginParams, UserRegisterParams } from '@controllers/models/UserRequestModel';
 import e = require('express');
 
-export async function register(data:UserRegisterParams){
-  let user = await User.findOne({
-    where:{
-      username:data.username
-    }
-  });
-  if(user) return;
-  user = User.create({
-    name:data.name,
-    username:data.username,
-    password:data.password,
-    role:data.role
-  });
-
-}
-
-export async function login(data:UserLoginParams){
+export async function register(data: UserRegisterParams) {
   let user: any = await User.findOne({
     where: {
-      username:data.username,
+      username: data.username,
     },
   });
 
-  if(!user) return "Invalid credentials";
+  if (user) throw new Error('user has been existed');
+  user = await User.create({
+    ...data,
+  });
 
-  if(user.authenticate(data.password,user.password)){
-    return "Valid credentials";
-  }else{
-    return "Invalid credentials";
+  let token = user.generateToken();
+
+  return {
+    name: user.name,
+    username: user.username,
+    avatar: user.avatar,
+    role: user.role,
+    token,
+  };
+}
+
+export async function login(data: UserLoginParams) {
+  const user: any = await User.findOne({
+    where: {
+      username: data.username,
+    },
+  });
+
+  if (!user) return 'Invalid credentials';
+
+  if (user.authenticate(data.password, user.password)) {
+    return {
+      name: user.name,
+      username: user.username,
+      role: user.role,
+      token: user.generateToken(),
+    };
+  } else {
+    return 'Invalid credentials';
   }
-
 }
 
 // export async function getAllUsers(): Promise<SuccessResponseModel<any>> {

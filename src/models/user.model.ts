@@ -1,41 +1,47 @@
 import { createJWToken } from '@config/auth';
 import * as bcrypt from 'bcryptjs';
-import jwt from "jsonwebtoken";
+import jwt from 'jsonwebtoken';
 
 module.exports = function (sequelize, DataTypes) {
-  const User: any = sequelize.define('User', {
-    id: {
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
-      primaryKey: true,
-    },
+  const User: any = sequelize.define(
+    'User',
+    {
+      id: {
+        type: DataTypes.UUID,
+        defaultValue: DataTypes.UUIDV4,
+        primaryKey: true,
+      },
 
-    name: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
+      name: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
 
-    avatar: {
-      type: DataTypes.STRING,
-    },
+      avatar: {
+        type: DataTypes.STRING,
+      },
 
-    username: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true,
-    },
+      username: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
+      },
 
-    password: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
+      password: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
 
-    role: {
-      type: DataTypes.ENUM,
-      values: ['admin', 'user'],
-      defaultValue: 'user',
+      role: {
+        type: DataTypes.ENUM,
+        values: ['admin', 'user'],
+        defaultValue: 'user',
+      },
     },
-  });
+    {
+      underscored: true,
+    },
+  );
 
   User.associate = (db) => {
     db.User.hasMany(db.Todo);

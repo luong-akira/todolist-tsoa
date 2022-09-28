@@ -13,14 +13,21 @@ export interface UserLoginParams {
   password: string;
 }
 
-export interface UserRegisterParams{
-  name:string;
-  username:string;
-  password:string;
-  role:string;
+export interface UserRegisterParams {
+  name: string;
+  username: string;
+  password: string;
+  role?: string;
+  avatar?: string;
 }
 
-export const BasicUserSchema = Joi.object({
-  user_name: Joi.string().required().label('Tên đăng nhập'),
-  password: Joi.string().trim().required(),
+export const BasicUserRegisterSchema = Joi.object({
+  name: Joi.string().required().min(4),
+  username: Joi.string().required().min(3),
+  password: Joi.string().trim().required().min(3),
+});
+
+export const BasicUserLoginSchema = Joi.object({
+  username: Joi.string().required().min(3),
+  password: Joi.string().trim().required().min(3),
 });

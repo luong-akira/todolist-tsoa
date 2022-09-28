@@ -2,7 +2,7 @@ import * as mime from 'mime-types';
 import * as multer from 'multer';
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import {PRODUCT_MEDIA_TYPE } from '@commons/constant';
+import { PRODUCT_MEDIA_TYPE } from '@commons/constant';
 
 const storage = multer.diskStorage({
   destination: (req: any, file, callback) => {
@@ -21,7 +21,12 @@ const fileFilter = (req: any, file: any, cb: any) => {
     } else {
       cb(new Error('Image uploaded is not of type jpg/jpeg or png'), false);
     }
-  } else if (file.mimetype === 'image/jpg' || file.mimetype === 'image/jpeg' || file.mimetype === 'image/png' || file.mimetype === 'video/mp4') {
+  } else if (
+    file.mimetype === 'image/jpg' ||
+    file.mimetype === 'image/jpeg' ||
+    file.mimetype === 'image/png' ||
+    file.mimetype === 'video/mp4'
+  ) {
     cb(null, true);
   } else {
     cb(new Error('Image uploaded is not of type jpg/jpeg or png'), false);
@@ -34,6 +39,7 @@ const imageUploader = multer({ storage, fileFilter });
 export async function handleSingleFile(request: any, name: string, mediaType: number): Promise<any> {
   request.asset_type = mediaType;
   const multerSingle = imageUploader.single(name);
+
   return new Promise((resolve, reject) => {
     multerSingle(request, undefined, async (error) => {
       if (error) {
