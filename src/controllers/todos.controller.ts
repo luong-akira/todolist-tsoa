@@ -3,10 +3,12 @@ import { ApplicationController } from './';
 import { Body, Request, Get, Post, Put, Query, Route, Delete, Tags, Security, Patch } from 'tsoa';
 import * as todoService from '@services/todo.service';
 import { CreateTodoParams, UpdateTodoParams } from './models/TodoRequestModel';
-import { pagingMiddleware } from '@middleware/pagingMiddleware';
+import { handlePagingMiddleware, pagingMiddleware } from '@middleware/pagingMiddleware';
 const db = require('@models');
 const { sequelize, Sequelize, User } = db.default;
 const { Op } = Sequelize;
+import * as uploadMiddleware from '@middleware/uploadMiddleware';
+import { PRODUCT_MEDIA_TYPE } from '@commons/constant';
 
 @Route('todos')
 @Tags('todo')
@@ -19,7 +21,8 @@ export class TodosController extends ApplicationController {
   @Security('jwt')
   public async getAllTodos(@Request() request: any) {
     let userId = request.user.data.id;
-    return todoService.getAllTodos(userId);
+    let { page, limit, offset } = handlePagingMiddleware(request);
+    return todoService.getAllTodos(userId, page, limit);
   }
 
   @Post()
@@ -34,5 +37,28 @@ export class TodosController extends ApplicationController {
   public async updateTodo(@Body() updateTodoParams: UpdateTodoParams, @Request() request: any, todoId: number) {
     let userId = request.user.data.id;
     return todoService.updateTodo(updateTodoParams, userId, todoId);
+  }
+
+  @Delete('/{todoId}')
+  @Security('jwt')
+  public async deleteTodo(@Request() request: any, todoId: number) {
+    let userId = request.user.data.id;
+    return todoService.deleteTodo(userId, todoId);
+  }
+
+  @Post('/importFromExcelStream')
+  @Security('jwt')
+  public async importToExcelStream(@Request() request: any) {
+    await uploadMiddleware.handleSingleFile(request, 'excel', PRODUCT_MEDIA_TYPE.OTHER);
+    let userId = request.user.data.id;
+    console.log(userId);
+    todoService.importFromExcelStream(userId, request.file);
+  }
+
+  @Post('/exportToExcelStream')
+  @Security('jwt')
+  public async exportToExcelStream(@Request() request: any) {
+    let userId = request.user.data.id;
+    return todoService.exportToExcelStream(userId, 1, 10);
   }
 }

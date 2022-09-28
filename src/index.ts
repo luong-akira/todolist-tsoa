@@ -8,11 +8,8 @@ import { Express } from 'express';
 import * as routes from './routes';
 import { environment } from './config/';
 import * as startSetup from '../setup';
+import { RESOURCES_DIRNAME } from '@commons/constant';
 const PORT: number = environment.port || 3000;
-import * as schedule from './cronjob/schedule';
-//import { sequelize } from '@config/sequelize';
-
-//sequelize.query('select 1 as result');
 
 console.log(PORT);
 export class Server {
@@ -29,6 +26,7 @@ export class Server {
     );
     this.app.use(json());
     this.app.use('/uploads', express.static('uploads'));
+    this.app.use(`/${RESOURCES_DIRNAME}`, express.static(`${RESOURCES_DIRNAME}`));
     this.app.use(express.static('public'));
     this.app.use(
       cors({
@@ -37,14 +35,11 @@ export class Server {
     );
 
     this.app.use(morgan('combined'));
-    // this.app.use(upload.any());
     this.app.listen(PORT, () => {
       winston.log('info', '--> Server successfully started at port %d', PORT);
     });
 
     routes.initRoutes(this.app);
-
-    // schedule()
   }
 
   getApp() {

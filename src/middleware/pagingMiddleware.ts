@@ -31,3 +31,19 @@ export function handlePagingMiddleware(req): { page: number; limit: number; offs
   const offset = (page - 1) * limit;
   return { page, limit, offset };
 }
+
+export function handleUerPagingMiddleware(req): { page: number; limit: number; offset: number; todoLimit: number } {
+  req.query.isPaging = +req.query.page > 0;
+
+  let page = +req.query.page || 1;
+  let limit = +req.query.limit || CONFIG.PAGING_LIMIT;
+  let todoLimit = +req.query.todoLimit || CONFIG.TODO_LIMIT;
+
+  if (limit <= 0 || limit > PAGING_LIMIT_MAX) {
+    limit = CONFIG.PAGING_LIMIT;
+  }
+  page = Math.max(page, 1);
+
+  const offset = (page - 1) * limit;
+  return { page, limit, offset, todoLimit };
+}

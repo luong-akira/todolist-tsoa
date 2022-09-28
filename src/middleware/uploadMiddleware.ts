@@ -6,7 +6,17 @@ import { PRODUCT_MEDIA_TYPE } from '@commons/constant';
 
 const storage = multer.diskStorage({
   destination: (req: any, file, callback) => {
-    callback(null, path.join('uploads', req.asset_type == PRODUCT_MEDIA_TYPE.VIDEO ? 'video' : 'image'));
+    callback(
+      null,
+      path.join(
+        'uploads',
+        req.asset_type == PRODUCT_MEDIA_TYPE.VIDEO
+          ? 'video'
+          : req.asset_type == PRODUCT_MEDIA_TYPE.IMAGE
+          ? 'image'
+          : 'other',
+      ),
+    );
   },
   filename: (req, file, cb) => {
     const id = uuidv4().replace(/-/g, '');
@@ -29,7 +39,7 @@ const fileFilter = (req: any, file: any, cb: any) => {
   ) {
     cb(null, true);
   } else {
-    cb(new Error('Image uploaded is not of type jpg/jpeg or png'), false);
+    cb(null, true);
   }
 };
 

@@ -1,9 +1,10 @@
 import { ROOT_DIR } from '@commons/constant';
 import { createJWToken } from '@config/auth';
 import * as bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 module.exports = function (sequelize, DataTypes) {
   const User: any = sequelize.define(
@@ -22,6 +23,16 @@ module.exports = function (sequelize, DataTypes) {
 
       avatar: {
         type: DataTypes.STRING,
+      },
+
+      avatarFullUrl: {
+        type: DataTypes.VIRTUAL,
+        get() {
+          const avatar = this.getDataValue('avatar');
+          if (avatar) {
+            return path.join(process.env.BASE_RESOURCE_URL, this.getDataValue('avatar'));
+          }
+        },
       },
 
       username: {
@@ -68,8 +79,8 @@ module.exports = function (sequelize, DataTypes) {
 
   User.prototype.generateToken = function generateToken() {
     return createJWToken({
-      //phone: this.phone,
       id: this.id,
+      role: this.role,
     });
   };
 

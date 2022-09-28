@@ -15,7 +15,7 @@ export function expressAuthentication(request: express.Request, securityName: st
 
     return verifyJWTToken(token).then((decodedToken: any) => {
       console.log('authorized', decodedToken, scopes);
-      const foundRole = Object.keys(ROLE).find((k) => ROLE[k] == decodedToken?.data?.df_type_user_id);
+      const foundRole = Object.keys(ROLE).find((k) => ROLE[k] == decodedToken?.data?.role);
 
       if (scopes && scopes.length > 0) {
         if (foundRole && scopes.includes(foundRole.toLowerCase())) {

@@ -4,6 +4,7 @@ export const IS_ACTIVE = {
 };
 
 export const ROOT_DIR = process.cwd();
+export const RESOURCES_DIRNAME = 'resources';
 
 export const GIFT_STATUS = {
   ACTIVE: 1, // hoạt động
@@ -116,15 +117,16 @@ export const FILTER_TYPE = {
 };
 
 export const ROLE = {
-  ADMIN: 1,
-  USER: 2,
-  ENTERPRISE: 3,
-  AGENT: 4,
+  ADMIN: 'admin',
+  USER: 'user',
+  ENTERPRISE: 'enterprise',
+  AGENT: 'agent',
 };
 
 export const PRODUCT_MEDIA_TYPE = {
   IMAGE: 1,
   VIDEO: 2,
+  OTHER: 3,
 };
 
 export const CATEGORY_STATUS = {
@@ -246,6 +248,7 @@ export const CONFIG = {
   DATE_FORMAT: 'YYYY-DD-MM-DD',
   CRYPT_SALT: 10,
   PAGING_LIMIT: 100000,
+  TODO_LIMIT: 5,
   RESET_PASSWORD: 'Base123a@',
 };
 export const expirationTimeInSeconds = 900; //15p - email

@@ -3,7 +3,7 @@ const path = require('path');
 const { start } = require('repl');
 
 function createDirectory() {
-  const uploadDirs = ['uploads', 'uploads/image', 'uploads/video'];
+  const uploadDirs = ['resources', 'uploads', 'uploads/image', 'uploads/video', 'uploads/other'];
 
   uploadDirs
     .map((dir) => path.resolve(dir))

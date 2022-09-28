@@ -1,7 +1,7 @@
 import { IS_ACTIVE } from '@commons/constant';
 
 const db = require('@models');
-const { sequelize, Sequelize, User } = db.default;
+const { sequelize, Sequelize, User, Todo } = db.default;
 const { Op } = Sequelize;
 import {
   SuccessResponseModel,
@@ -95,60 +95,47 @@ export async function update(userId: string, userUpdateParams: UserUpdateParams)
   return user;
 }
 
-// export async function getAllUsers(): Promise<SuccessResponseModel<any>> {
-//   const listUsers = await User.findAll({
-//     attributes: ['id', 'user_name', 'role', 'createdAt'],
-//   });
-//   return listUsers;
-// }
+export async function getAllUsers(userLimit: number, userPage: number, todoLimit: number) {
+  let userCount = await User.count({ where: { role: 'user' } });
+  let totalPage = Math.ceil(userCount / userPage);
 
-// export async function registerFormData(data: UserLoginParams): Promise<SuccessResponseModel<any>> {
-//   const createdUser = await sequelize.transaction(async (transaction) => {
-//     const user = await User.create(
-//       {
-//         user_name: data.user_name,
-//         password: data.password,
-//       },
-//       { transaction },
-//     );
-//     return user;
-//   });
-//   return createdUser;
-// }
+  let users: any = await User.findAll({
+    where: {
+      role: 'user',
+    },
+    attributes: ['id', 'name', 'avatar', 'avatarFullUrl', 'username'],
+    include: [
+      {
+        model: Todo,
+        limit: todoLimit,
+      },
+    ],
+    limit: userLimit,
+    offset: (userPage - 1) * userLimit,
+  });
 
-// export async function getUserById(id: string): Promise<SuccessResponseModel<any>> {
-//   const user = await User.findOne({ where: { id: id }, attributes: ['id', 'user_name', 'role', 'createdAt'] });
-//   if (user) {
-//     return user;
-//   } else {
-//     return supplierNotFound;
-//   }
-// }
+  console.log(users);
 
-// export async function updateUser(id: string, role: string): Promise<SuccessResponseModel<any>> {
-//   const user = await User.findByPk(id);
-//   if (user) {
-//     user.role = role;
-//     await user.save();
-//     return Success;
-//   } else {
-//     return supplierNotFound;
-//   }
-// }
+  let userArr = users.map((user: any) => user.getDataValue('id'));
 
-// export async function deleteUser(id: string): Promise<SuccessResponseModel<any>> {
-//   const user = await User.findByPk(id);
-//   if (user) {
-//     await User.destroy({ where: { id: id } });
-//     return successfulDelete;
-//   } else {
-//     return supplierNotFound;
-//   }
-// }
+  let todos: any = await Todo.findAll({
+    where: {
+      UserId: {
+        [Op.in]: userArr,
+      },
+    },
 
-// export async function login(user_name: string, password: string): Promise<SuccessResponseModel<any>> {
-//   const user = await User.findOne({ where: { user_name: user_name } });
-//   if (user) {
+    attributes: ['user_id', [sequelize.fn('COUNT', sequelize.col('id')), 'todoCount']],
+    group: ['user_id'],
+  });
 
-//   }
-// }
+  const todoArr: any[] = todos.map((todo: any) => todo.dataValues);
+
+  const map = new Map(todoArr.map((todo) => [todo.user_id, todo.todoCount]));
+
+  users.forEach((user: any) => {
+    user.dataValues.todoCount = map.get(user.getDataValue('id')) || 0;
+  });
+
+  return { data: users, page: userPage, totalPage, limit: userLimit, todoLimit };
+}
