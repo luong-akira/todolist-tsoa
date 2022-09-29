@@ -628,7 +628,7 @@ export function getFullUrl(path?: string): string {
   }
 
   if (!path.startsWith('http')) {
-    return `${SERVER_URL}/${path}`;
+    return `${SERVER_URL}${path}`;
   }
   return path;
 }

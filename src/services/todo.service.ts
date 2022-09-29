@@ -3,9 +3,11 @@ import Joi = require('joi');
 import * as Excel from 'exceljs';
 import * as path from 'path';
 import { RESOURCES_DIRNAME, ROOT_DIR } from '@commons/constant';
-import { excelQueue } from '../queues/excelQueue/excelQueue';
-const db =  require('@models');
-const { sequelize, Sequelize, Todo, User, ImportExport } = db.default;
+import { excelQueue } from '../queues/registerQueue';
+const db = require('@models');
+const { Todo, User, ImportExport } = db.default;
+import exportProcessor from '../queues/excelQueue/exportProcessor';
+import importProcessor from '../queues/excelQueue/importProcessor';
 
 export async function getAllTodos(userId: string, page: number, limit: number) {
   let todoCount = await Todo.count({
@@ -53,10 +55,10 @@ export async function updateTodo(data: UpdateTodoParams, userId: string, id: num
   todo.status = data.status || todo.status;
 
   let newTodo = {
-    title:todo.dataValues.title,
-    body:todo.dataValues.body,
-    status:todo.dataValues.status
-  }
+    title: todo.dataValues.title,
+    body: todo.dataValues.body,
+    status: todo.dataValues.status,
+  };
 
   if (BasicTodoSchema.validate(newTodo).error) {
     throw new Joi.ValidationError('Validation error', BasicTodoSchema.validate(newTodo).error.details, null);
@@ -124,7 +126,7 @@ export async function importFromExcelStream(UserId: string, file: any, workSheet
     }
   }
 
-  return {message:"Upload successfully"}
+  return { message: 'Upload successfully' };
 }
 
 export async function exportToExcelStream(userId: string, requestPage: number, limit: number) {
@@ -155,8 +157,6 @@ export async function exportToExcelStream(userId: string, requestPage: number, l
     todos.data.forEach((todo) => {
       index += 1;
 
-      console.log(todos.data);
-
       workSheet
         .addRow([
           index,
@@ -180,8 +180,10 @@ export async function exportToExcelStream(userId: string, requestPage: number, l
   return `/${RESOURCES_DIRNAME}/${filename}`;
 }
 
+excelQueue.process('export', exportProcessor);
+excelQueue.process('import', importProcessor);
+
 export async function importFromExcelFileQueue(userId: string, file: any, sheetNum: number) {
-  
   await excelQueue.add('import', {
     userId,
     file,
@@ -190,6 +192,8 @@ export async function importFromExcelFileQueue(userId: string, file: any, sheetN
 }
 
 export async function exportToExcelFileQueue(userId: string, requestPage: number, limit: number) {
+  console.log(io);
+
   await excelQueue.add('export', {
     userId,
     requestPage,
@@ -200,7 +204,7 @@ export async function exportToExcelFileQueue(userId: string, requestPage: number
 excelQueue.on('active', async (job, result) => {
   if (job.name == 'import') {
     let importJob: any = await ImportExport.findOne({
-      where: { UserId: job.data.userId, jobId: job.id },
+      where: { userId: job.data.userId, jobId: job.id },
     });
 
     if (!importJob) return;
@@ -208,7 +212,7 @@ excelQueue.on('active', async (job, result) => {
     await importJob.save();
   } else if (job.name == 'export') {
     let exportJob: any = await ImportExport.findOne({
-      where: { UserId: job.data.userId, jobId: job.id },
+      where: { userId: job.data.userId, jobId: job.id },
     });
 
     if (!exportJob) return;
@@ -220,17 +224,18 @@ excelQueue.on('active', async (job, result) => {
 excelQueue.on('completed', async (job, result) => {
   if (job.name == 'import') {
     let importJob: any = await ImportExport.findOne({
-      where: { UserId: job.data.userId, jobId: job.id },
+      where: { userId: job.data.userId, jobId: job.id },
     });
-    console.log(importJob);
+
     if (!importJob) return;
     importJob.status = 'completed';
     importJob.file = job.data.file.filename;
+
     await importJob.save();
   } else if (job.name == 'export') {
     if (job.name == 'export') {
       let exportJob: any = await ImportExport.findOne({
-        where: { UserId: job.data.userId, jobId: job.id },
+        where: { userId: job.data.userId, jobId: job.id },
       });
       if (!exportJob) return;
       exportJob.status = 'completed';
@@ -244,14 +249,14 @@ excelQueue.on('completed', async (job, result) => {
 excelQueue.on('failed', async (job, result) => {
   if (job.name == 'import') {
     let importJob: any = await ImportExport.findOne({
-      where: { UserId: job.data.userId, jobId: job.id },
+      where: { userId: job.data.userId, jobId: job.id },
     });
     if (!importJob) return;
     importJob.status = 'failed';
     await importJob.save();
   } else if ((job.name = 'export')) {
     let exportJob: any = await ImportExport.findOne({
-      where: { UserId: job.data.userId, jobId: job.id },
+      where: { userId: job.data.userId, jobId: job.id },
     });
 
     if (!exportJob) return;

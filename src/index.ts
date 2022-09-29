@@ -13,11 +13,10 @@ const PORT: number = environment.port || 3000;
 import { createBullBoard } from '@bull-board/api';
 import { BullAdapter } from '@bull-board/api/bullAdapter';
 import { ExpressAdapter } from '@bull-board/express';
-import { excelQueue } from './queues/excelQueue/excelQueue';
 import { createServer } from 'http';
-import { Server as SocketIoServer } from 'socket.io';
 import * as colors from 'colors/safe';
-import { Socket } from './socketio';
+import { excelQueue } from './queues/registerQueue';
+import { Server as IoServer } from 'socket.io';
 
 const serverAdapter = new ExpressAdapter();
 serverAdapter.setBasePath('/admin/queues');
@@ -27,18 +26,15 @@ createBullBoard({
   serverAdapter: serverAdapter,
 });
 
-export let io;
 export class Server {
   private app: Express;
   private httpServer;
+  readonly io;
 
   constructor() {
     this.app = express();
-
     this.httpServer = createServer(this.app);
-    io = new SocketIoServer(this.httpServer);
-    let newSocket = new Socket();
-    newSocket.socket()
+    this.io = new IoServer(this.httpServer);
 
     this.app.use(cors());
     this.app.use(
@@ -62,32 +58,27 @@ export class Server {
       res.sendFile(__dirname + '/index.html');
     });
 
-    // this.io.on('connection', (socket) => {
-    //   console.log(colors.yellow(colors.underline('User has been connected...')));
-  
-    //   socket.on('getDownloadLink', (userId: string, requestPage: number, limit: number) => {
-    //     console.log(requestPage, limit);
-    //     exportToExcelFileQueue(userId, requestPage, limit);
-    //   });
-  
-    //   socket.on('client', (message: string) => {});
-  
-    //   socket.on('hello', (message: string) => {
-    //     console.log(colors.yellow(colors.underline(message)));
-    //   });
-  
-    //   socket.on('completed', (message: string) => {
-    //     console.log(colors.blue(colors.underline(message)));
-    //   });
-  
-    //   socket.on('failed', (message: string) => {
-    //     console.log(colors.red(colors.underline(message)));
-    //   });
-  
-    //   socket.on('active', (message: string) => {
-    //     console.log(colors.green(colors.underline(message)));
-    //   });
-    // });
+    this.io.on('connection', (socket) => {
+      console.log(colors.yellow(colors.underline('User has been connected...')));
+
+      socket.on('client', (message: string) => {});
+
+      socket.on('hello', (message: string) => {
+        console.log(colors.yellow(colors.underline(message)));
+      });
+
+      socket.on('completed', (message: string) => {
+        console.log(colors.blue(colors.underline(message)));
+      });
+
+      socket.on('failed', (message: string) => {
+        console.log(colors.red(colors.underline(message)));
+      });
+
+      socket.on('active', (message: string) => {
+        console.log(colors.green(colors.underline(message)));
+      });
+    });
 
     this.httpServer.listen(PORT, () => {
       winston.log('info', '--> Server successfully started at port %d', PORT);
@@ -100,5 +91,7 @@ export class Server {
     return this.app;
   }
 }
+
 new Server();
+
 startSetup();

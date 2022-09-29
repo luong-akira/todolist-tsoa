@@ -1,4 +1,4 @@
-import { ROOT_DIR } from '@commons/constant';
+import { getFullUrl, ROOT_DIR } from '@commons/constant';
 import { createJWToken } from '@config/auth';
 import * as bcrypt from 'bcryptjs';
 import * as path from 'path';
@@ -30,7 +30,7 @@ module.exports = function (sequelize, DataTypes) {
         get() {
           const avatar = this.getDataValue('avatar');
           if (avatar) {
-            return path.join(process.env.BASE_RESOURCE_URL, this.getDataValue('avatar'));
+            return getFullUrl(avatar);
           }
         },
       },
@@ -59,17 +59,12 @@ module.exports = function (sequelize, DataTypes) {
 
   User.associate = (db) => {
     db.User.hasMany(db.Todo);
-  };
-
-  User.associate = (db) => {
     db.User.hasMany(db.ImportExport);
   };
 
   User.beforeSave((user, options) => {
-    //console.log('before SAVE:   ', { user });
     if (user.changed('password')) {
       user.password = bcrypt.hashSync(user.password, bcrypt.genSaltSync(10), null);
-      //console.log('before SAVE:11111   ', { user });
     }
   });
 

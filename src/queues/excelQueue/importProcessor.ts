@@ -1,29 +1,28 @@
-import { Job } from 'bull';
+import { exportToExcelStream, importFromExcelStream } from '@services/todo.service';
 const db = require('@models');
 const { sequelize, Sequelize, User, ImportExport } = db.default;
-import { importFromExcelStream } from '@services/todo.service';
 
-
-const sleepThread = async (sleepInMilis: number) => {
+const threadSleep = async (milliseconds) => {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
       resolve(true);
-    }, sleepInMilis);
+    }, milliseconds);
   });
 };
 
-export default async function (job: Job) {
+export default async function (job: any) {
   const { userId, file, sheetNum } = job.data;
-  console.log(`Process id is ${process.pid}`);
+  console.log(`Import process id is ${process.pid}`);
 
   await ImportExport.create({
     jobId: job.id,
-    userId: job.data.userId,
+    userId,
     type: 'import',
     status: 'active',
     file: '',
   });
-  await sleepThread(5000);
+
+  await threadSleep(5000);
 
   return await importFromExcelStream(userId, file, sheetNum);
 }

@@ -32,6 +32,7 @@ export const BasicUserRegisterSchema = Joi.object({
   name: Joi.string().required().min(4),
   username: Joi.string().required().min(3),
   password: Joi.string().trim().required().min(3),
+  avatar: Joi.string().optional(),
 });
 
 export const BasicUserLoginSchema = Joi.object({

@@ -70,7 +70,7 @@ export class TodosController extends ApplicationController {
     let userId = request.user.data.id;
     todoService.importFromExcelFileQueue(userId, request.file, 1);
 
-    return 'File is processing';
+    return { message: 'File is processing' };
   }
 
   @Post('/exportToExcelStreamQueue')
@@ -78,6 +78,6 @@ export class TodosController extends ApplicationController {
   public async exportToExcelStreamQueue(@Request() request: any) {
     let userId = request.user.data.id;
     await todoService.exportToExcelFileQueue(userId, 1, 10);
-    return 'File is processing';
+    return { message: 'File is processing' };
   }
 }

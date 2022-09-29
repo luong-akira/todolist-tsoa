@@ -38,6 +38,10 @@
         );
       });
 
+      socket.on("completed",(message)=>{
+        console.log(message)
+      })
+
       socket.emit("from_import",message=>{
         console.log(message)
       });

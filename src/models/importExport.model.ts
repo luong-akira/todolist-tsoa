@@ -21,6 +21,14 @@ module.exports = function (sequelize, DataTypes) {
         values: ['waiting', 'active', 'completed', 'failed'],
         defaultValue: 'waiting',
       },
+
+      userId: {
+        type: DataTypes.UUID,
+        references: {
+          model: 'users',
+          key: 'id',
+        },
+      },
     },
     {
       underscored: true,
@@ -28,7 +36,7 @@ module.exports = function (sequelize, DataTypes) {
   );
 
   ImportExport.associate = (db) => {
-    db.Todo.belongsTo(db.User);
+    db.ImportExport.belongsTo(db.User);
   };
 
   return ImportExport;

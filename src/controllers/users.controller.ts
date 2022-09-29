@@ -36,9 +36,9 @@ export class UsersController extends ApplicationController {
   @Post('/register')
   public async register(@Request() request: MulterRequest) {
     await uploadMiddleware.handleSingleFile(request, 'avatar', PRODUCT_MEDIA_TYPE.IMAGE);
-    
+
     let avatar;
-    if(request.file) {
+    if (request.file) {
       avatar = `/${request.file.destination.replace('\\', '/')}/${request.file.filename}`;
     }
 
@@ -66,7 +66,12 @@ export class UsersController extends ApplicationController {
   @Security('jwt')
   public async updateUser(@Request() request: any) {
     await uploadMiddleware.handleSingleFile(request, 'avatar', PRODUCT_MEDIA_TYPE.IMAGE);
-    let avatar = request.file?.path;
+
+    let avatar;
+    if (request.file) {
+      avatar = `/${request.file.destination.replace('\\', '/')}/${request.file.filename}`;
+    }
+
     let userId = request.user.data.id;
 
     let updatedUserParams: UserUpdateParams = {};

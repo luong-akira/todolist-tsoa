@@ -22,7 +22,6 @@ import {
 } from '@controllers/models/UserRequestModel';
 import e = require('express');
 import Joi = require('joi');
-import { excelQueue } from '@queues/excelQueue/excelQueue';
 
 export async function register(data: UserRegisterParams) {
   if (BasicUserRegisterSchema.validate(data).error) {
@@ -43,9 +42,10 @@ export async function register(data: UserRegisterParams) {
   let token = user.generateToken();
 
   return {
+    id: user.id,
     name: user.name,
     username: user.username,
-    avatar: user.avatar,
+    avatar: user.avatarFullUrl,
     role: user.role,
     token,
   };
@@ -67,10 +67,11 @@ export async function login(data: UserLoginParams) {
   if (!user.authenticate(data.password, user.password)) throw new Error('Invalid credentials');
 
   return {
+    id: user.id,
     name: user.name,
     username: user.username,
     role: user.role,
-    avatar: user.avatar,
+    avatar: user.avatarFullUrl,
     token: user.generateToken(),
   };
 }
@@ -88,8 +89,15 @@ export async function update(userId: string, userUpdateParams: UserUpdateParams)
   user.avatar = userUpdateParams.avatar || user.avatar;
   user.role = userUpdateParams.role || user.role;
 
+  let newUser = {
+    name: user.dataValues.name,
+    username: user.dataValues.username,
+    avatar: user.dataValues.avatar,
+    role: user.dataValues.role,
+  };
+
   if (BasicUserRegisterSchema.validate(user).error) {
-    throw new Joi.ValidationError('Vlidation error', BasicUserRegisterSchema.validate(user).error.details, null);
+    throw new Joi.ValidationError('Validation error', BasicUserRegisterSchema.validate(newUser).error.details, null);
   }
 
   await user.save();
@@ -104,11 +112,11 @@ export async function getAllUsers(userLimit: number, userPage: number, todoLimit
     where: {
       role: 'user',
     },
-    attributes: ['id', 'name', 'avatar', 'username'],
+    attributes: ['id', 'name', 'avatar', 'avatarFullUrl', 'username'],
     include: [
       {
         model: Todo,
-        // limit: todoLimit,
+        limit: todoLimit,
       },
     ],
     limit: userLimit,
@@ -138,5 +146,5 @@ export async function getAllUsers(userLimit: number, userPage: number, todoLimit
     user.dataValues.todoCount = map.get(user.getDataValue('id')) || 0;
   });
 
-  return { data: users, page: userPage, totalPage, limit: userLimit, todoLimit };
+  return { data: { users }, page: userPage, totalPage, limit: userLimit, todoLimit };
 }
