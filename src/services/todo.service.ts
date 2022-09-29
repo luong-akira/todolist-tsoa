@@ -4,7 +4,7 @@ import * as Excel from 'exceljs';
 import * as path from 'path';
 import { RESOURCES_DIRNAME, ROOT_DIR } from '@commons/constant';
 import { excelQueue } from '../queues/excelQueue/excelQueue';
-const db = require('@models');
+const db =  require('@models');
 const { sequelize, Sequelize, Todo, User, ImportExport } = db.default;
 
 export async function getAllTodos(userId: string, page: number, limit: number) {
@@ -50,10 +50,16 @@ export async function updateTodo(data: UpdateTodoParams, userId: string, id: num
 
   todo.title = data.title || todo.title;
   todo.body = data.body || todo.body;
-  todo.status = data.status || todo.body;
+  todo.status = data.status || todo.status;
 
-  if (BasicTodoSchema.validate(todo).error) {
-    throw new Joi.ValidationError('Validation error', BasicTodoSchema.validate(todo).error.details, null);
+  let newTodo = {
+    title:todo.dataValues.title,
+    body:todo.dataValues.body,
+    status:todo.dataValues.status
+  }
+
+  if (BasicTodoSchema.validate(newTodo).error) {
+    throw new Joi.ValidationError('Validation error', BasicTodoSchema.validate(newTodo).error.details, null);
   }
 
   await todo.save();
@@ -117,6 +123,8 @@ export async function importFromExcelStream(UserId: string, file: any, workSheet
       }
     }
   }
+
+  return {message:"Upload successfully"}
 }
 
 export async function exportToExcelStream(userId: string, requestPage: number, limit: number) {
@@ -173,6 +181,7 @@ export async function exportToExcelStream(userId: string, requestPage: number, l
 }
 
 export async function importFromExcelFileQueue(userId: string, file: any, sheetNum: number) {
+  
   await excelQueue.add('import', {
     userId,
     file,
@@ -213,7 +222,7 @@ excelQueue.on('completed', async (job, result) => {
     let importJob: any = await ImportExport.findOne({
       where: { UserId: job.data.userId, jobId: job.id },
     });
-
+    console.log(importJob);
     if (!importJob) return;
     importJob.status = 'completed';
     importJob.file = job.data.file.filename;

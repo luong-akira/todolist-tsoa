@@ -38,6 +38,10 @@
         );
       });
 
+      socket.emit("from_import",message=>{
+        console.log(message)
+      });
+
       socket.on("download_link", (message) => {
         link.innerHTML = "Download Link";
         link.setAttribute("href", message);

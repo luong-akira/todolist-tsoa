@@ -3,6 +3,7 @@ const db = require('@models');
 const { sequelize, Sequelize, User, ImportExport } = db.default;
 import { importFromExcelStream } from '@services/todo.service';
 
+
 const sleepThread = async (sleepInMilis: number) => {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
@@ -22,7 +23,6 @@ export default async function (job: Job) {
     status: 'active',
     file: '',
   });
-
   await sleepThread(5000);
 
   return await importFromExcelStream(userId, file, sheetNum);

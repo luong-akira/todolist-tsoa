@@ -36,8 +36,11 @@ export class UsersController extends ApplicationController {
   @Post('/register')
   public async register(@Request() request: MulterRequest) {
     await uploadMiddleware.handleSingleFile(request, 'avatar', PRODUCT_MEDIA_TYPE.IMAGE);
-    console.log(request.file);
-    let avatar = `/${request.file.destination.replace('\\', '/')}/${request.file.filename}`;
+    
+    let avatar;
+    if(request.file) {
+      avatar = `/${request.file.destination.replace('\\', '/')}/${request.file.filename}`;
+    }
 
     let userRegisterParams: UserRegisterParams = {
       name: request.body.name,

@@ -17,7 +17,7 @@ import { excelQueue } from './queues/excelQueue/excelQueue';
 import { createServer } from 'http';
 import { Server as SocketIoServer } from 'socket.io';
 import * as colors from 'colors/safe';
-import { exportToExcelFileQueue } from '@services/todo.service';
+import { Socket } from './socketio';
 
 const serverAdapter = new ExpressAdapter();
 serverAdapter.setBasePath('/admin/queues');
@@ -27,17 +27,18 @@ createBullBoard({
   serverAdapter: serverAdapter,
 });
 
-console.log(PORT);
+export let io;
 export class Server {
   private app: Express;
   private httpServer;
-  private io;
 
   constructor() {
     this.app = express();
-    this.httpServer = createServer(this.app);
 
-    this.io = new SocketIoServer(this.httpServer);
+    this.httpServer = createServer(this.app);
+    io = new SocketIoServer(this.httpServer);
+    let newSocket = new Socket();
+    newSocket.socket()
 
     this.app.use(cors());
     this.app.use(
@@ -61,42 +62,38 @@ export class Server {
       res.sendFile(__dirname + '/index.html');
     });
 
-    this.io.on('connection', (socket) => {
-      console.log(colors.yellow(colors.underline('User has been connected...')));
-
-      socket.on('getDownloadLink', (userId: string, requestPage: number, limit: number) => {
-        console.log(requestPage, limit);
-        exportToExcelFileQueue(userId, requestPage, limit);
-      });
-
-      socket.on('client', (message: string) => {});
-
-      socket.on('hello', (message: string) => {
-        console.log(colors.yellow(colors.underline(message)));
-      });
-
-      socket.on('completed', (message: string) => {
-        console.log(colors.blue(colors.underline(message)));
-      });
-
-      socket.on('failed', (message: string) => {
-        console.log(colors.red(colors.underline(message)));
-      });
-
-      socket.on('active', (message: string) => {
-        console.log(colors.green(colors.underline(message)));
-      });
-    });
+    // this.io.on('connection', (socket) => {
+    //   console.log(colors.yellow(colors.underline('User has been connected...')));
+  
+    //   socket.on('getDownloadLink', (userId: string, requestPage: number, limit: number) => {
+    //     console.log(requestPage, limit);
+    //     exportToExcelFileQueue(userId, requestPage, limit);
+    //   });
+  
+    //   socket.on('client', (message: string) => {});
+  
+    //   socket.on('hello', (message: string) => {
+    //     console.log(colors.yellow(colors.underline(message)));
+    //   });
+  
+    //   socket.on('completed', (message: string) => {
+    //     console.log(colors.blue(colors.underline(message)));
+    //   });
+  
+    //   socket.on('failed', (message: string) => {
+    //     console.log(colors.red(colors.underline(message)));
+    //   });
+  
+    //   socket.on('active', (message: string) => {
+    //     console.log(colors.green(colors.underline(message)));
+    //   });
+    // });
 
     this.httpServer.listen(PORT, () => {
       winston.log('info', '--> Server successfully started at port %d', PORT);
     });
 
     routes.initRoutes(this.app);
-  }
-
-  getIo() {
-    return this.io;
   }
 
   getApp() {

@@ -104,11 +104,11 @@ export async function getAllUsers(userLimit: number, userPage: number, todoLimit
     where: {
       role: 'user',
     },
-    attributes: ['id', 'name', 'avatar', 'avatarFullUrl', 'username'],
+    attributes: ['id', 'name', 'avatar', 'username'],
     include: [
       {
         model: Todo,
-        limit: todoLimit,
+        // limit: todoLimit,
       },
     ],
     limit: userLimit,
