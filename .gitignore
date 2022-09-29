@@ -83,7 +83,7 @@ out
 .nuxt
 dist
 uploads
-resources
+resources/
 
 # Gatsby files
 .cache/
