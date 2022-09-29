@@ -32,24 +32,21 @@
       btn.addEventListener("click", () => {
         socket.emit(
           "getDownloadLink",
-          "ed5604a8-69b9-4c4f-b9e7-d1ffea8230e5",
+          "54dbf3e9-0fc2-48a7-9de2-7d2f2dc1423b",
           1,
           500
         );
       });
 
-      socket.on("completed",(message)=>{
-        console.log(message)
+      socket.on("export-todo:completed",(message)=>{
+        link.innerHTML = "Download Link";
+        link.setAttribute("href", message);
       })
 
       socket.emit("from_import",message=>{
         console.log(message)
       });
 
-      socket.on("download_link", (message) => {
-        link.innerHTML = "Download Link";
-        link.setAttribute("href", message);
-      });
     </script>
   </body>
 </html>

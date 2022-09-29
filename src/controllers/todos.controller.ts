@@ -3,12 +3,13 @@ import { ApplicationController } from './';
 import { Body, Request, Get, Post, Put, Query, Route, Delete, Tags, Security, Patch } from 'tsoa';
 import * as todoService from '@services/todo.service';
 import { CreateTodoParams, UpdateTodoParams } from './models/TodoRequestModel';
-import { handlePagingMiddleware, pagingMiddleware } from '@middleware/pagingMiddleware';
+import { handlePagingMiddleware } from '@middleware/pagingMiddleware';
 const db = require('@models');
 const { sequelize, Sequelize, User } = db.default;
 const { Op } = Sequelize;
 import * as uploadMiddleware from '@middleware/uploadMiddleware';
 import { getFullUrl, PRODUCT_MEDIA_TYPE } from '@commons/constant';
+import { socketServer } from '@config/socket';
 
 @Route('todos')
 @Tags('todo')
@@ -59,7 +60,8 @@ export class TodosController extends ApplicationController {
   @Security('jwt')
   public async exportToExcelStream(@Request() request: any) {
     let userId = request.user.data.id;
-    let relativePath = await todoService.exportToExcelStream(userId, 1, 10);
+    let { page, limit, offset } = handlePagingMiddleware(request);
+    let relativePath = await todoService.exportToExcelStream(userId, page, limit);
     return getFullUrl(relativePath);
   }
 
@@ -77,7 +79,9 @@ export class TodosController extends ApplicationController {
   @Security('jwt')
   public async exportToExcelStreamQueue(@Request() request: any) {
     let userId = request.user.data.id;
-    await todoService.exportToExcelFileQueue(userId, 1, 10);
+    let { page, limit, offset } = handlePagingMiddleware(request);
+
+    await todoService.exportToExcelFileQueue(userId, page, limit);
     return { message: 'File is processing' };
   }
 }

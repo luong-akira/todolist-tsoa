@@ -8,6 +8,8 @@ const db = require('@models');
 const { Todo, User, ImportExport } = db.default;
 import exportProcessor from '../queues/excelQueue/exportProcessor';
 import importProcessor from '../queues/excelQueue/importProcessor';
+import { socketServer } from '@config/socket';
+import TodoSocket from '../socket/todo.socket';
 
 export async function getAllTodos(userId: string, page: number, limit: number) {
   let todoCount = await Todo.count({
@@ -192,8 +194,6 @@ export async function importFromExcelFileQueue(userId: string, file: any, sheetN
 }
 
 export async function exportToExcelFileQueue(userId: string, requestPage: number, limit: number) {
-  console.log(io);
-
   await excelQueue.add('export', {
     userId,
     requestPage,
@@ -230,6 +230,7 @@ excelQueue.on('completed', async (job, result) => {
     if (!importJob) return;
     importJob.status = 'completed';
     importJob.file = job.data.file.filename;
+    // socketServer.io.emit('completed', 'hello world');
 
     await importJob.save();
   } else if (job.name == 'export') {
@@ -240,7 +241,9 @@ excelQueue.on('completed', async (job, result) => {
       if (!exportJob) return;
       exportJob.status = 'completed';
       exportJob.file = job.returnvalue;
+      // socketServer.io.emit('completed', job.returnvalue);
 
+      TodoSocket.emitExportComplete(job.returnvalue);
       await exportJob.save();
     }
   }

@@ -4,7 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "start": "node dist/index.js",
+    "start": "node  --trace-warnings dist/index.js",
     "devlog": "tsc -p . && ts-node-dev dist/index.js",
     "dev": "tsoa spec-and-routes && concurrently \"nodemon\" \"nodemon --watch './**/controllers/*.ts' -x tsoa spec-and-routes\"",
     "build:code": "tsc -p .",

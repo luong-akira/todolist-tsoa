@@ -1,10 +1,6 @@
 {
-  "watch": [
-    "src"
-  ],
-  "ignore": [
-    "*/**/routes/routes.ts"
-  ],
+  "watch": ["src"],
+  "ignore": ["*/**/routes/routes.ts"],
   "ext": "ts",
   "exec": "tsc -p . && ts-node ./src/index.ts"
 }

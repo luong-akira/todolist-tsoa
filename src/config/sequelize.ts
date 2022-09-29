@@ -27,10 +27,10 @@ sequelize
   .authenticate()
   .then(() => {
     console.log('Connection has been established successfully.');
-    return sequelize.sync({ force: false, alter: true, logging: console.log });
+    // return sequelize.sync({ force: false, alter: true, logging: console.log });
   })
   .then((res) => {
-    console.log(res);
+    // console.log(res);
   })
   .catch((err) => {
     console.error('Unable to connect to the database:', err);
